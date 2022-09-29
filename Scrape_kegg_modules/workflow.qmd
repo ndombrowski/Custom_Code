@@ -1,0 +1,105 @@
+
+## Load libs
+
+```{python}
+#import libs for the webscraping and downloading the web page
+from bs4 import BeautifulSoup 
+import requests 
+import re
+import pandas as pd
+import numpy as np
+```
+
+
+## Load variables
+
+Tested on:
+
+- M00001
+- M00003
+- M00307
+- M00031
+- M00135
+- M00014 (not working yet)
+- M00133
+- M00173
+
+```{python}
+module_id = "M00133"
+```
+
+
+## Load html
+
+```{python}
+url = "https://www.genome.jp/module/" + module_id
+
+#use get to download the contents of the webpage in text format and store in a variable called data:
+data = requests.get(url).text
+
+#create a beautiful soup object
+soup = BeautifulSoup(data,"html.parser")
+```
+
+
+
+## Get KO IDs
+
+```{python}
+Definitions = soup.findAll("div", class_ = 'definition')
+
+for result in Definitions:
+    categories = result.find_all("td")
+    KOs = categories[5].text
+    print()
+```
+
+
+## Parse IDs
+
+```{python}
+KO_char = KOs[:]
+KO_char = KO_char.strip('\n ')
+KO_char = KO_char.partition('\n')[0]
+#KO_char = re.sub(r'(K[0-9]+)K',r'\1 K', KO_char)
+KO_char = re.sub(r'(K[0-9]+(?=K))',r'\1 ', KO_char)
+KO_char = re.sub("\s+", ";", KO_char.strip())
+KO_char = re.sub(r"\([^\(\)]+\)", lambda x: x.group(0).replace(";", ","), KO_char)
+KO_char = re.sub(r'\((.*?)\)',r'\1', KO_char)
+KO_char = re.sub(r"\([^\(\)]+\)", lambda x: x.group(0).replace(";", ","), KO_char)
+KO_char = re.sub(r'\((.*?)\)',r'\1', KO_char)
+KO_char = re.sub("\(", "", KO_char.strip())
+KO_char = re.sub("\)", "", KO_char.strip())
+KO_char = re.sub("\+", ",", KO_char.strip())
+KO_char = re.sub("\-", ",", KO_char.strip())
+KO_char = re.sub("-", '', KO_char)
+KO_char = KO_char.split(";")
+```
+
+
+## Transform to df
+
+```{python}
+#print to df
+df = pd.DataFrame({'KO_ID': KO_char})
+
+#add dummy columns for the order and add column for module ID
+df["Order"] = np.arange(df.shape[0])+1
+df["Module"] = module_id
+
+#split
+df['KO_ID'] = df['KO_ID'].str.split(',')
+df = df.explode('KO_ID')
+
+#drop empty columns
+df= df[df.KO_ID != '']
+df
+
+#print
+#df.to_csv(module_id+'.txt', sep ='\t', index = False)
+```
+
+```{bash}
+for sample in `cat data/module_list`; do /opt/anaconda3/bin/python scrape_module_and_kegg.py ${sample} output/ ; done
+```
+

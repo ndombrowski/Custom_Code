@@ -1,0 +1,10 @@
+# Temporary files
+*~
+~$*.docx*
+~$*.xlsx*
+*.xlk
+~$*.ppt*
+
+
+#folders to ignore
+Scrape_kegg_modules/output
