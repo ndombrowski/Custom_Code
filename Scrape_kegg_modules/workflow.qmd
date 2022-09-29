@@ -98,8 +98,3 @@ df
 #print
 #df.to_csv(module_id+'.txt', sep ='\t', index = False)
 ```
-
-```{bash}
-for sample in `cat data/module_list`; do /opt/anaconda3/bin/python scrape_module_and_kegg.py ${sample} output/ ; done
-```
-

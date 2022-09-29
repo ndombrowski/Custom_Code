@@ -1,0 +1,66 @@
+# Scrape KO to COG
+
+## Load libs
+
+```{python}
+#import libs for the webscraping and downloading the web page
+from bs4 import BeautifulSoup 
+import requests 
+import re
+import pandas as pd
+```
+
+
+## Load variables
+
+Tested on:
+
+- K00657
+- K00029
+
+```{python}
+kegg_id = "K00029"
+```
+
+
+## Load html
+
+```{python}
+url = "https://www.genome.jp/dbget-bin/www_bget?" + kegg_id
+
+#use get to download the contents of the webpage in text format and store in a variable called data:
+data = requests.get(url).text
+
+#create a beautiful soup object
+soup = BeautifulSoup(data,"html.parser")
+```
+
+
+
+## Get data of interest
+
+```{python}
+pattern = re.compile(r"https://www.ncbi.*?COG.*?")
+COG_ID_results = soup.find_all("a", href=pattern)
+
+```
+
+```{python}
+cog_list = []
+
+for i in COG_ID_results:
+    cog_list.append(i.text)
+print(cog_list)
+```
+
+```{python}
+#make a df
+COG_to_Kegg_df = pd.DataFrame({'COG_id': cog_list})
+
+#add kog ID
+COG_to_Kegg_df["KEGG_id"] = kegg_id
+
+#print
+df.to_csv(kegg_id+'.txt', sep ='\t', index = False)
+```
+

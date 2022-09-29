@@ -8,3 +8,4 @@
 
 #folders to ignore
 Scrape_kegg_modules/output
+Scrape_kegg_to_cog/ouput
