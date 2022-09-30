@@ -14,6 +14,7 @@ Notice: We also downloaded each table into the `data` folder with wget.
 Pathway_to_KO_df = pd.read_csv("https://rest.kegg.jp/link/ko/pathway", sep='\t', names = ['pathway_map', 'KO_id'])
 Ko_descr = pd.read_csv("https://rest.kegg.jp/list/ko", sep='\t', names = ['KO_id', 'KO_desc'])
 Pathway_desc = pd.read_csv("https://rest.kegg.jp/list/pathway", sep='\t', names = ['pathway_map', 'pathway_desc'])
+Module_to_pathway = pd.read_csv("https://rest.kegg.jp/link/module/pathway", sep='\t', names = ['pathway_map', 'module_id'])
 ```
 
 ## Clean data
@@ -21,6 +22,9 @@ Pathway_desc = pd.read_csv("https://rest.kegg.jp/list/pathway", sep='\t', names 
 ```{python}
 #only keep rows were we have a path:map
 Pathway_to_KO_df_clean = Pathway_to_KO_df[Pathway_to_KO_df.pathway_map.str.startswith('path:map')]
+
+#condense the module information into one row per pathway
+Module_to_pathway_clean = Module_to_pathway.groupby(['pathway_map'])['module_id'].apply(','.join).reset_index()
 ```
 
 
@@ -33,12 +37,17 @@ df = pd.merge(Ko_descr, Pathway_to_KO_df_clean, on = "KO_id", how = "left")
 #add pathway desc
 df = pd.merge(df, Pathway_desc, on = "pathway_map", how = "left")
 
+#add module id
+df = pd.merge(df, Module_to_pathway_clean, on = "pathway_map", how = "left")
+df
+
 #if pathway is not assigned, replace NA with unassigned
 df = df.fillna('unassigned')
 
 #clean the text
 df["KO_id"] = df["KO_id"].str.replace("ko:", "")
 df["pathway_map"] = df["pathway_map"].str.replace("path:", "")
+df["module_id"] = df["module_id"].str.replace("md:", "")
 
 #print
 df.to_csv("output/kegg_to_pathway.txt", sep ='\t', index = False)
