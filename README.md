@@ -1,3 +1,8 @@
-# Custom script folder
+# Custom scripts
 
-Each directory contains a custom script design for a specific task and (if needed) any input data and requirements for installation
+A collection of useful scripts that I have used in my research over the years.
+
+Scripts can come as:
+
+- Individual scripts found inside the `misc` folder
+- Folders with scripts and potential metadata/required input files inside
